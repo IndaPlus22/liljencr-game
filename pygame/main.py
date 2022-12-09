@@ -7,6 +7,7 @@ from bullets import *
 from drawShip import *
 from shipManagement import *
 from gameOver import *
+from meteors import *
 
 # Arcade controlls:
 # main (Left player)
@@ -36,7 +37,7 @@ path = compPath
 # Classes for the ships:
 class blueShip:
     shipSurface = pygame.image.load(path + "blueShip.png").convert_alpha()
-    shipSurface = pygame.transform.scale(shipSurface, (56, 52))
+    shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
 
     surface = shipSurface
     pos = pygame.Rect(WIDTH/4-54, HEIGHT/2, 70, 70)
@@ -50,7 +51,7 @@ class blueShip:
 
 class redShip:
     shipSurface = pygame.image.load(path + "redShip.png").convert_alpha()
-    shipSurface = pygame.transform.scale(shipSurface, (56, 52))
+    shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
 
     surface = shipSurface
     pos = pygame.Rect(WIDTH/4*3, HEIGHT/2, 70, 70)
@@ -61,22 +62,65 @@ class redShip:
     shotTime = 0
     hp = 3
 
+# Initialize meteors
+set_meteors([[pygame.Rect(WIDTH/2, HEIGHT/2, 64, 64), 160, 0, [WIDTH/2, HEIGHT/2]], [pygame.Rect(WIDTH/3, HEIGHT/3, 64, 64), 25, 0, [WIDTH/3, HEIGHT/3]], [pygame.Rect(WIDTH/3*2, HEIGHT/3*2, 64, 64), 25, 0, [WIDTH/3*2, HEIGHT/3*2]]])
+
 
 # Initialize sprites:
 space = pygame.image.load(path + "space.png").convert_alpha()
 space = pygame.transform.scale(space, (WIDTH, HEIGHT))
 
+# All textures are scaled up by a factor of 4
 heartFull = pygame.image.load(path + "heartFull.png").convert_alpha()
 heartFull = pygame.transform.scale(heartFull, (48, 40))
 
 heartEmpty = pygame.image.load(path + "heartEmpty.png").convert_alpha()
 heartEmpty = pygame.transform.scale(heartEmpty, (48, 40))
 
+meteorSprite = pygame.image.load(path + "meteor.png").convert_alpha()
+meteorSprite = pygame.transform.scale(meteorSprite, (64, 64))
+
 # Set some good variables:
 gameMode = "menu"
 winner = None
 started = False
 gameStartDelay = 0
+
+def resetAll():
+    global gameMode
+    global blueShip
+    global redShip
+    global started
+    gameMode = "menu"
+    started = False
+    set_meteors([[pygame.Rect(WIDTH/2, HEIGHT/2, 64, 64), 160, 0, [WIDTH/2, HEIGHT/2]], [pygame.Rect(WIDTH/3, HEIGHT/3, 64, 64), 25, 0, [WIDTH/3, HEIGHT/3]], [pygame.Rect(WIDTH/3*2, HEIGHT/3*2, 64, 64), 25, 0, [WIDTH/3*2, HEIGHT/3*2]]])
+    set_buttonTime(time.time())
+    class blueShip:
+        shipSurface = pygame.image.load(path + "blueShip.png").convert_alpha()
+        shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
+
+        surface = shipSurface
+        pos = pygame.Rect(WIDTH/4-54, HEIGHT/2, 70, 70)
+        rotation = 0
+        spawnPos = [WIDTH/4-54, HEIGHT/2]
+        exactPos = spawnPos
+        bullets = []
+        shotTime = 0
+        hp = 3
+
+    class redShip:
+        shipSurface = pygame.image.load(path + "redShip.png").convert_alpha()
+        shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
+
+        surface = shipSurface
+        pos = pygame.Rect(WIDTH/4*3, HEIGHT/2, 70, 70)
+        rotation = 0
+        spawnPos = [WIDTH/4*3, HEIGHT/2]
+        exactPos = spawnPos
+        bullets = []
+        shotTime = 0
+        hp = 3
+
 
 def draw_hearts(): # Draws the players hp to the screen
     for i in range(1,4): # i will have values from 1 to 3
@@ -99,11 +143,13 @@ def draw_window(): # Function called from main() to draw things
 
     elif gameMode == "pVSp" and not started:
         draw_ships(win, blueShip, redShip)
+        draw_meteors(win, meteorSprite)
         draw_hearts()
 
     elif gameMode == "pVSp":
         draw_ships(win, blueShip, redShip)
         draw_bullets(win, blueShip, redShip)
+        draw_meteors(win, meteorSprite)
         draw_hearts()
 
     elif gameMode == "gameOver":
@@ -122,6 +168,7 @@ def reset(): # Resets game state
         redShip.exactPos = [WIDTH/4*3, HEIGHT/2]
         blueShip.rotation = 0
         redShip.rotation = 0
+        set_meteors([[pygame.Rect(WIDTH/2, HEIGHT/2, 64, 64), 160, 0, [WIDTH/2, HEIGHT/2]], [pygame.Rect(WIDTH/3, HEIGHT/3, 64, 64), 25, 0, [WIDTH/3, HEIGHT/3]], [pygame.Rect(WIDTH/3*2, HEIGHT/3*2, 64, 64), 25, 0, [WIDTH/3*2, HEIGHT/3*2]]])
 
 def check_hp():
     global gameMode
@@ -130,24 +177,26 @@ def check_hp():
     if redShip.hp < 1:
         started = False
         gameMode = "gameOver"
+        set_waitTime(time.time())
         winner = "Blue"
 
     if blueShip.hp < 1:
         started = False
         gameMode = "gameOver"
+        set_waitTime(time.time())
         winner = "Red"
 
 def check_bullet_overlapping(): # Checks if the bullets are intersecting anything
     for bullet in redShip.bullets:
-        distance = [bullet[0] - blueShip.exactPos[0]-28,
-                    bullet[1] - blueShip.exactPos[1]-26]
+        distance = [bullet[0]+4 - (blueShip.exactPos[0]+28),
+                    bullet[1]+4 - (blueShip.exactPos[1]+26)]
         if distance[0] < 25 and distance[0] > -25 and distance[1] < 25 and distance[1] > -25: # Hitbox is circular, radius 25
             blueShip.hp -= 1
             reset()
 
     for bullet in blueShip.bullets:
-        distance = [bullet[0] - redShip.exactPos[0]-28,
-                    bullet[1] - redShip.exactPos[1]-26]
+        distance = [bullet[0]+4 - (redShip.exactPos[0]+28),
+                    bullet[1]+4 - (redShip.exactPos[1]+26)]
         if distance[0] < 25 and distance[0] > -25 and distance[1] < 25 and distance[1] > -25: # Hitbox is circular, radius 25
             redShip.hp -= 1
             reset()
@@ -184,12 +233,22 @@ def main(): # Main loop that calls all the functions
             gameMode, gameStartDelay = update_menu(keys_pressed, gameMode)
 
         elif gameMode == "pVSp" and started: # Updates everything that're nessecary for the main game to run
-            movement(keys_pressed, blueShip, "blue", HEIGHT, WIDTH)
-            movement(keys_pressed, redShip, "red", HEIGHT, WIDTH)
+            move_meteors(WIDTH, HEIGHT)
+            meteorCollosion = check_meteor_collision(redShip, blueShip)
+            if meteorCollosion == "blue":
+                blueShip.hp -= 1
+                reset()
+            elif meteorCollosion == "red":
+                redShip.hp -= 1
+                reset()
+
+
+            movement(keys_pressed, blueShip, "blue", WIDTH, HEIGHT)
+            movement(keys_pressed, redShip, "red", WIDTH, HEIGHT)
             shoot(keys_pressed[pygame.K_LALT], blueShip)
             shoot(keys_pressed[pygame.K_s], redShip)
 
-            move_bullets(blueShip, redShip, HEIGHT, WIDTH)
+            move_bullets(blueShip, redShip, WIDTH, HEIGHT)
             check_bullet_overlapping()
             check_hp()
 
@@ -201,9 +260,16 @@ def main(): # Main loop that calls all the functions
             blueShip.pos.y = HEIGHT/2
             redShip.pos.x = WIDTH/4*3
             redShip.pos.y = HEIGHT/2
+            blueShip.rotation = 0
+            redShip.rotation = 0
             # Starts game if either shoot button is pressed down, also has some wait time so it doesn't get triggered when accepting in the menu
             if (keys_pressed[pygame.K_LALT] or keys_pressed[pygame.K_s]) and time.time() - gameStartDelay > 0.1:
                 started = True
+
+        elif gameMode == "gameOver":
+            if go_back(keys_pressed) == "resetAll":
+                print("Cool")
+                resetAll()
 
         draw_window() # Calls the draw function to actually display stuff
         clock.tick(FPS) # Makes the framerate correct

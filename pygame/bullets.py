@@ -15,7 +15,7 @@ def draw_bullets(win, redShip, blueShip):
         pygame.draw.rect(win, bulletColor, rect)
 
 
-def move_bullets(blueShip, redShip, HEIGHT, WIDTH):
+def move_bullets(blueShip, redShip, WIDTH, HEIGHT):
     for bullet in redShip.bullets:
         if bullet[0] < 0 or bullet[0] > WIDTH or bullet[1] < 0 or bullet[1] > HEIGHT:
             redShip.bullets.remove(bullet)

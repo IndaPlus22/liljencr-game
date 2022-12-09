@@ -13,7 +13,7 @@ def changeShipRot(increment, ship):
         ship.rotation += 360
 
 
-def movement(keys_pressed, ship, color, HEIGHT, WIDTH):
+def movement(keys_pressed, ship, color, WIDTH, HEIGHT):
     # Ships that go of screen will show up on the other side: (It has some offsets because of the pos being the top left corner of the ship)
     shipThruWall = 20 # How much of the ship needs to go thru the wall to activate
     wallOffset = 6

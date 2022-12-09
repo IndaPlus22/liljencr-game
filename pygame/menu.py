@@ -17,11 +17,15 @@ playerVSaiText = font.render("1 vs AI", True, (0, 0, 0))
 
 buttonTime = 0
 
+def set_buttonTime(number):
+    global buttonTime
+    buttonTime = number
+
 
 def update_menu(keys_pressed, gameMode):
     global selected
     global buttonTime
-    if time.time() - buttonTime > 0.1:
+    if time.time() - buttonTime > 0.3:
         if (keys_pressed[pygame.K_DOWN] or keys_pressed[pygame.K_f]):
             selected += 1
             buttonTime = time.time()
@@ -29,11 +33,11 @@ def update_menu(keys_pressed, gameMode):
             selected -= 1
             buttonTime = time.time()
 
-    if keys_pressed[pygame.K_LALT] or keys_pressed[pygame.K_s]:
-        if selected == 1:
-            gameMode = "pVSp"
-        elif selected == 2:
-            gameMode = "pVSai"
+        if keys_pressed[pygame.K_LALT] or keys_pressed[pygame.K_s]:
+            if selected == 1:
+                gameMode = "pVSp"
+            elif selected == 2:
+                gameMode = "pVSai"
 
     if selected < 1:
         selected = 2
