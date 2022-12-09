@@ -29,6 +29,11 @@ WIDTH, HEIGHT = pygame.display.get_surface().get_size() # Gets and saves screen 
 pygame.display.set_caption("Agroids") # Sets window caption to Agroids
 FPS = 30 # Sets framerate to 30 FPS
 
+# FONTS:
+pygame.font.init()
+font = pygame.font.Font("./OpenSans-Bold.ttf", 40)
+startText = font.render("Press shoot to begin!", True, (0, 0, 0))
+
 # Decides which path to use: (Arcade uses piPath, computer uses compPath)
 piPath = "/home/pi/RetroPie/roms/pc/assets/"
 compPath = "./assets/"
@@ -145,6 +150,7 @@ def draw_window(): # Function called from main() to draw things
         draw_ships(win, blueShip, redShip)
         draw_meteors(win, meteorSprite)
         draw_hearts()
+        win.blit(startText, (playerVSplayer.x, playerVSplayer.y + 10))
 
     elif gameMode == "pVSp":
         draw_ships(win, blueShip, redShip)
@@ -234,7 +240,7 @@ def main(): # Main loop that calls all the functions
 
         elif gameMode == "pVSp" and started: # Updates everything that're nessecary for the main game to run
             move_meteors(WIDTH, HEIGHT)
-            meteorCollosion = check_meteor_collision(redShip, blueShip)
+            meteorCollosion = check_meteor_collision(blueShip, redShip)
             if meteorCollosion == "blue":
                 blueShip.hp -= 1
                 reset()
