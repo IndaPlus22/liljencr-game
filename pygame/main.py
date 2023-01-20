@@ -310,7 +310,6 @@ def main(): # Main loop that calls all the functions
 
         elif gameMode == "gameOver":
             if go_back(keys_pressed) == "resetAll":
-                print("Cool")
                 resetAll()
 
         draw_window() # Calls the draw function to actually display stuff

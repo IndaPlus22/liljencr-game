@@ -14,8 +14,8 @@ def changeShipRot(increment, ship):
     elif ship.rotation < 0:
         ship.rotation += 360
 
-def changeShipRotReturn(increment, ship):
-    rotation = ship
+def changeShipRotReturn(increment, degrees):
+    rotation = degrees
     rotation += increment
     if rotation > 359:
         rotation -= 360
@@ -42,6 +42,10 @@ def ai_script(blueShip, redShip, meteors, WIDTH, HEIGHT):
     metGoalAngle = check_close_meteors(meteors, redShip)
     if metGoalAngle != None:
         goalAngle = metGoalAngle
+
+    bulGoalAngle = check_close_bullets(blueShip.bullets, redShip)
+    if bulGoalAngle != None:
+        goalAngle = bulGoalAngle
 
     realRedShipRot = -redShip.rotation
     realRedShipRot = changeShipRotReturn(0, realRedShipRot)
@@ -85,8 +89,18 @@ def check_close_meteors(meteors, redShip):
         distanceToMeteor = [meteorPos[0] - redShipPos[0], meteorPos[1] - redShipPos[1]]
         if distanceToMeteor[0] < 280 and distanceToMeteor[0] > -280 and distanceToMeteor[1] < 280 and distanceToMeteor[1] > -280:
             goalAngle = meteor[1] - 135
-        """ rotatedVector = [-1*distanceToMeteor[1], 1*distanceToMeteor[0]] 
-            goalAngle = math.degrees(math.acos(rotatedVector[0]/math.sqrt(rotatedVector[0]**2 + rotatedVector[1]**2)))-90 """
+            
+    return goalAngle
+
+
+def check_close_bullets(bullets, redShip):
+    redShipPos = [redShip.exactPos[0] + 28, redShip.exactPos[1] + 26]
+    goalAngle = None # Should = angle to blueShip
+    for bullet in bullets:
+        bulletPos = [bullet[0] + 32, bullet[1] + 32]
+        distanceToMeteor = [bulletPos[0] - redShipPos[0], bulletPos[1] - redShipPos[1]]
+        if distanceToMeteor[0] < 280 and distanceToMeteor[0] > -280 and distanceToMeteor[1] < 280 and distanceToMeteor[1] > -280:
+            goalAngle = bullet[1] - 135
             
     return goalAngle
     
