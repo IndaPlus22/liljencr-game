@@ -9,6 +9,9 @@ def set_meteors(data):
     global meteors
     meteors = data
 
+def get_meteors():
+    return meteors
+
 def rot_center(image, rect, angle):  # Rotate image around center, common pygame code
     rotImage = pygame.transform.rotate(image, angle)
     rotRect = rotImage.get_rect(center=rect.center)
@@ -26,7 +29,7 @@ def check_meteor_collision(blueShip, redShip):
             return "blue"
         
         redDistance = [meteor[3][0]+32 - (redShip.exactPos[0]+28), meteor[3][1]+32 - (redShip.exactPos[1]+26)]
-        if redDistance[0] < 50 and redDistance[0] > -50 and redDistance[1] < 50 and redDistance[1] > -50: # Hitbox is circular, radius 64
+        if redDistance[0] < 50 and redDistance[0] > -50 and redDistance[1] < 50 and redDistance[1] > -50: # Hitbox is circular
             return "red"
     
     return None

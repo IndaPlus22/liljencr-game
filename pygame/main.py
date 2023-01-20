@@ -8,6 +8,7 @@ from drawShip import *
 from shipManagement import *
 from gameOver import *
 from meteors import *
+from ai import ai_script
 
 # Arcade controlls:
 # main (Left player)
@@ -45,7 +46,7 @@ class blueShip:
     shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
 
     surface = shipSurface
-    pos = pygame.Rect(WIDTH/4-54, HEIGHT/2, 70, 70)
+    pos = pygame.Rect(WIDTH/4-54, HEIGHT/2, 56, 52)
     rotation = 0
     spawnPos = [WIDTH/4-54, HEIGHT/2]
     exactPos = spawnPos
@@ -59,8 +60,8 @@ class redShip:
     shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
 
     surface = shipSurface
-    pos = pygame.Rect(WIDTH/4*3, HEIGHT/2, 70, 70)
-    rotation = 0
+    pos = pygame.Rect(WIDTH/4*3, HEIGHT/2, 56, 52)
+    rotation = 270
     spawnPos = [WIDTH/4*3, HEIGHT/2]
     exactPos = spawnPos
     bullets = []
@@ -105,7 +106,7 @@ def resetAll():
         shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
 
         surface = shipSurface
-        pos = pygame.Rect(WIDTH/4-54, HEIGHT/2, 70, 70)
+        pos = pygame.Rect(WIDTH/4-54, HEIGHT/2, 56, 52)
         rotation = 0
         spawnPos = [WIDTH/4-54, HEIGHT/2]
         exactPos = spawnPos
@@ -118,7 +119,7 @@ def resetAll():
         shipSurface = pygame.transform.scale(shipSurface, (56, 52)) # Scale up by factor of 4
 
         surface = shipSurface
-        pos = pygame.Rect(WIDTH/4*3, HEIGHT/2, 70, 70)
+        pos = pygame.Rect(WIDTH/4*3, HEIGHT/2, 56, 52)
         rotation = 0
         spawnPos = [WIDTH/4*3, HEIGHT/2]
         exactPos = spawnPos
@@ -146,13 +147,13 @@ def draw_window(): # Function called from main() to draw things
     if gameMode == "menu":
         draw_menu(win)
 
-    elif gameMode == "pVSp" and not started:
+    elif (gameMode == "pVSp" or gameMode == "pVSai") and not started:
         draw_ships(win, blueShip, redShip)
         draw_meteors(win, meteorSprite)
         draw_hearts()
         win.blit(startText, (playerVSplayer.x, playerVSplayer.y + 10))
 
-    elif gameMode == "pVSp":
+    elif gameMode == "pVSp" or gameMode == "pVSai":
         draw_ships(win, blueShip, redShip)
         draw_bullets(win, blueShip, redShip)
         draw_meteors(win, meteorSprite)
@@ -210,11 +211,10 @@ def check_bullet_overlapping(): # Checks if the bullets are intersecting anythin
 
 def shoot(key, ship): # Handles the shoot event
     if key:
-        global shotTime # A wait time so you can't spray toooo fast
         if time.time() - ship.shotTime > 0.5:
             # Calculates bullet spawn position and sets rotation
-            bullet = [ship.pos.x+36+26*math.cos((ship.rotation+90) * 3.1415 / 180),
-                      ship.pos.y+34+24*math.sin((ship.rotation+270) * 3.1415 / 180), ship.rotation]
+            bullet = [ship.pos.x+28+28*math.cos((ship.rotation+90) * 3.1415 / 180),
+                      ship.pos.y+26+26*math.sin((ship.rotation+270) * 3.1415 / 180), ship.rotation]
             ship.bullets.append(bullet) # Appends the bullet to the ships bullets list
             ship.shotTime = time.time() # Resets shotTime
 
@@ -270,6 +270,42 @@ def main(): # Main loop that calls all the functions
             redShip.rotation = 0
             # Starts game if either shoot button is pressed down, also has some wait time so it doesn't get triggered when accepting in the menu
             if (keys_pressed[pygame.K_LALT] or keys_pressed[pygame.K_s]) and time.time() - gameStartDelay > 0.1:
+                started = True
+
+        elif gameMode == "pVSai" and started: # Updates everything that're nessecary for the main game to run
+            move_meteors(WIDTH, HEIGHT)
+            meteorCollosion = check_meteor_collision(blueShip, redShip)
+            if meteorCollosion == "blue":
+                blueShip.hp -= 1
+                reset()
+            elif meteorCollosion == "red":
+                redShip.hp -= 1
+                reset()
+
+
+            movement(keys_pressed, blueShip, "blue", WIDTH, HEIGHT)
+
+            meteors = get_meteors()
+            ai_script(blueShip, redShip, meteors, WIDTH, HEIGHT)
+            shoot(keys_pressed[pygame.K_LALT], blueShip)
+            shoot(True, redShip) # ai ship will always shoot! Since there's currently kind of no penalty for doing so...
+
+            move_bullets(blueShip, redShip, WIDTH, HEIGHT)
+            check_bullet_overlapping()
+            check_hp()
+
+        elif gameMode == "pVSai" and not started: # Let's people rest a little before starting and between deaths
+            # Resets ship positions, because I couldn't get it to work in any other way...
+            blueShip.exactPos = [WIDTH/4-54, HEIGHT/2]
+            redShip.exactPos = [WIDTH/4*3, HEIGHT/2]
+            blueShip.pos.x = WIDTH/4-54
+            blueShip.pos.y = HEIGHT/2
+            redShip.pos.x = WIDTH/4*3
+            redShip.pos.y = HEIGHT/2
+            blueShip.rotation = 0
+            redShip.rotation = 0
+            # Starts game if either shoot button is pressed down, also has some wait time so it doesn't get triggered when accepting in the menu
+            if (keys_pressed[pygame.K_LALT]) and time.time() - gameStartDelay > 0.1:
                 started = True
 
         elif gameMode == "gameOver":
